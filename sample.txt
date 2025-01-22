@@ -1,0 +1,8 @@
+# DATABASE_URL="postgres://tsdbadmin@o7fzo28u4j.qnvv4f3pdk.tsdb.cloud.timescale.com:31049/tsdb?sslmode=require"
+REDIS_URL="redis://localhost:6878"
+
+# API services
+ALPHA_VANTAGE_API_KEY="AQ6IK1769CVON7QP"
+POLOGYON_API_KEY="0pEnqPfhRk7bYu5LSa7ppMuKfqr21kck" 
+OPENAI_API_KEY=""
+FRED_API_KEY = "6799bbe3b5be9dc92751b055763e402b"

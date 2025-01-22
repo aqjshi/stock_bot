@@ -10,11 +10,14 @@ from .models import StockQuote, Company
 
 admin.site.register(Company)
 
-
 class StockQuoteAdmin(admin.ModelAdmin):
-    list_display = ["company__ticker", "close_price", "localized_time", "time"]
-    list_filter = ["company__ticker", ("time", DateTimeRangeFilterBuilder()), "time"]
-    readonly_fields = ["localized_time", "time", "raw_timestamp"]
+    list_display = ['company__ticker', 'close_price', 'localized_time', 'time']
+    list_filter = [
+        'company__ticker', 
+        ('time', DateTimeRangeFilterBuilder()),
+        'time'
+    ]
+    readonly_fields = ['localized_time', 'time','raw_timestamp']
 
     def localized_time(self, obj):
         tz_name = "US/Eastern"
@@ -31,6 +34,5 @@ class StockQuoteAdmin(admin.ModelAdmin):
 
     # class Meta:
     #     model = StockQuote
-
 
 admin.site.register(StockQuote, StockQuoteAdmin)
