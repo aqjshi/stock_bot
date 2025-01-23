@@ -10,7 +10,7 @@ from decouple import config
 POLOGYON_API_KEY = config("POLOGYON_API_KEY", default=None, cast=str)
 
 print(POLOGYON_API_KEY)
-def transform_polygon_result(result):
+def transform_polygon_stock_result(result):
     unix_timestamp = result.get('t') / 1000.0
     utc_timestamp = datetime.fromtimestamp(unix_timestamp, tz=pytz.timezone('UTC'))
     return {
@@ -25,17 +25,73 @@ def transform_polygon_result(result):
         'time': utc_timestamp,
     }
 
+def transform_polygon_sma_result(result):
+    """
+    Transforms an SMA result from Polygon into a structured format.
+    """
+    unix_timestamp = result.get("timestamp") / 1000.0
+    utc_timestamp = datetime.fromtimestamp(unix_timestamp, tz=pytz.timezone("UTC"))
+    return {
+        "value": result.get("value"),  # Use "value" to get the SMA value
+        "raw_timestamp": result.get("timestamp"),
+        "time": utc_timestamp,
+    }
+
+def transform_polygon_ema_result(result):
+    unix_timestamp = result.get("timestamp") / 1000.0
+    utc_timestamp = datetime.fromtimestamp(unix_timestamp, tz=pytz.timezone("UTC"))
+    return {
+        "value": result.get("value"),  # Use "value" to get the SMA value
+        "raw_timestamp": result.get("timestamp"),
+        "time": utc_timestamp,
+    }
+def transform_polygon_macd_result(result):
+    unix_timestamp = result.get("timestamp") / 1000.0
+    utc_timestamp = datetime.fromtimestamp(unix_timestamp, tz=pytz.timezone("UTC"))
+    return {
+        "histogram": result["histogram"],
+        "signal": result["signal"],
+        "timestamp": result["timestamp"],
+        "value": result["value"],
+        'raw_timestamp': result.get('t'),
+        'time': utc_timestamp,
+    }
+
+
+def transform_polygon_rsi_result(result):
+    unix_timestamp = result.get("timestamp") / 1000.0
+    utc_timestamp = datetime.fromtimestamp(unix_timestamp, tz=pytz.timezone("UTC"))
+    return {
+        'value': result['value'],
+        'raw_timestamp': result.get('timestamp'),
+        'time': utc_timestamp,
+    }
+
+
+
 
 @dataclass
 class PolygonAPIClient:
     ticker: str = "AAPL"
     multiplier: int = 5
     timespan:str = "minute"
-    from_date:str = "2024-01-09"
-    to_date:str = "2024-01-09"
+    from_date:str = "2025-01-01"
+    to_date:str = "2025-01-21"
     api_key:str = ""
     adjusted: bool = True 
-    sort: Literal["asc", "desc"] = "asc"
+    sort: Literal["asc", "desc"] = "desc"
+
+    #sma 
+    window: int = 50
+
+    short_window: int = 12
+    long_window: int = 26
+    signal_window: int = 9
+
+    rsi_window: int = 14
+    series_type: Literal["open", "high", "low", "close"] = "close"
+    order: Literal["asc", "desc"] = "desc"
+    limit = 5000
 
     def get_api_key(self):
         return self.api_key or POLOGYON_API_KEY
@@ -46,40 +102,231 @@ class PolygonAPIClient:
             "Authorization": f"Bearer {api_key}"
         }
 
-    def get_params(self):
+    def get_stock_params(self):
         return {
             "adjusted": self.adjusted,
             "sort": self.sort,
-            "limit": 50_000,
+            "limit": 5000,
+        }
+    def get_sma_params(self):
+        return {
+            "timestamp.gte": self.from_date,
+            "timestamp.lte": self.to_date,
+            "timespan": self.timespan,
+            "adjusted": self.adjusted,
+            "window": self.window,
+            "series_type": self.series_type,
+            "order": self.sort,
+            "limit": 5000,
+        }
+    def get_ema_params(self):
+        return {
+            "timestamp.gte": self.from_date,
+            "timestamp.lte": self.to_date,
+            "timespan": self.timespan,
+            "adjusted": self.adjusted,
+            "window": self.window,
+            "series_type": self.series_type,
+            "order": self.sort,
+            "limit": 5000,
+        }
+    def get_macd_params(self):
+        return {
+            "timestamp.gte": self.from_date,
+            "timestamp.lte": self.to_date,
+            "timespan": self.timespan,
+            "adjusted": self.adjusted,
+            "short_window": self.short_window,
+            "long_window": self.long_window,
+            "signal_window": self.signal_window,
+            "series_type": self.series_type,
+            "order": self.sort,
+            "limit": 5000,
+        }
+    def get_rsi_params(self):
+        return {
+            "timestamp.gte": self.from_date,
+            "timestamp.lte": self.to_date,
+            "timespan": self.timespan,
+            "adjusted": self.adjusted,
+            "rsi_window": self.rsi_window,
+            "series_type": self.series_type,
+            "order": self.sort,
+            "limit": 5000,
         }
     
-    def generate_url(self, pass_auth=False):
+    def generate_stock_url(self, pass_auth=True):
         ticker = f"{self.ticker}".upper()
         path = f"/v2/aggs/ticker/{ticker}/range/{self.multiplier}/{self.timespan}/{self.from_date}/{self.to_date}"
         url = f"https://api.polygon.io{path}"
-        params = self.get_params()
+        params = self.get_stock_params()
         encoded_params = urlencode(params)
         url = f"{url}?{encoded_params}"
         if pass_auth:
             api_key = self.get_api_key()
-            url += f"&api_key={api_key}"
+            url += f"&apiKey={api_key}"
         return url
 
-    def fetch_data(self):
+    def generate_sma_url(self, pass_auth=True):
+        ticker = f"{self.ticker}".upper()
+        path = f"/v1/indicators/sma/{ticker}/"
+        url = f"https://api.polygon.io{path}"
+        params = self.get_sma_params()
+        encoded_params = urlencode(params)
+        url = f"{url}?{encoded_params}"
+        if pass_auth:
+            api_key = self.get_api_key()
+            url += f"&apiKey={api_key}"
+        print(url)
+        return url
+    
+    def generate_ema_url(self, pass_auth=True):
+        ticker = f"{self.ticker}".upper()
+        path = f"/v1/indicators/ema/{ticker}/"
+        url = f"https://api.polygon.io{path}"
+        params = self.get_ema_params()
+        encoded_params = urlencode(params)
+        url = f"{url}?{encoded_params}"
+        if pass_auth:
+            api_key = self.get_api_key()
+            url += f"&apiKey={api_key}"
+        return url
+        
+    def generate_macd_url(self, pass_auth=True):
+        ticker = f"{self.ticker}".upper()
+        path = f"/v1/indicators/macd/{ticker}/"
+        url = f"https://api.polygon.io{path}"
+        params = self.get_macd_params()
+        encoded_params = urlencode(params)
+        url = f"{url}?{encoded_params}"
+        if pass_auth:
+            api_key = self.get_api_key()
+            url += f"&apiKey={api_key}"
+        return url
+    
+    def generate_rsi_url(self, pass_auth=True):
+        ticker = f"{self.ticker}".upper()
+        path = f"/v1/indicators/rsi/{ticker}/"
+        url = f"https://api.polygon.io{path}"
+        params = self.get_rsi_params()
+        encoded_params = urlencode(params)
+        url = f"{url}?{encoded_params}"
+        if pass_auth:
+            api_key = self.get_api_key()
+            url += f"&apiKey={api_key}"
+        return url
+    
+    def fetch_stock_data(self):
         headers = self.get_headers()
-        url = self.generate_url()
+        url = self.generate_stock_url()
+        response = requests.get(url, headers=headers)
+        response.raise_for_status() # not 200/201
+        return response.json()
+    
+    def fetch_sma_data(self):
+        headers = self.get_headers()
+        url = self.generate_sma_url()
+        response = requests.get(url, headers=headers)
+        response.raise_for_status() # not 200/201
+
+        return response.json()
+    def fetch_ema_data(self):
+        headers = self.get_headers()
+        url = self.generate_ema_url()
+        response = requests.get(url, headers=headers)
+        response.raise_for_status() # not 200/201
+        return response.json()
+    
+    def fetch_macd_data(self):
+        headers = self.get_headers()
+        url = self.generate_macd_url()
+        response = requests.get(url, headers=headers)
+        response.raise_for_status() # not 200/201
+        return response.json()
+    
+    def fetch_rsi_data(self):
+        headers = self.get_headers()
+        url = self.generate_rsi_url()
         response = requests.get(url, headers=headers)
         response.raise_for_status() # not 200/201
         return response.json()
 
     def get_stock_data(self):
-        data = self.fetch_data()
+        data = self.fetch_stock_data()
         results = data.get('results') or None
         if results is None:
             raise Exception(f"Ticker {self.ticker} has no results")
         dataset = []
         for result in results:
             dataset.append(
-                transform_polygon_result(result)
+                transform_polygon_stock_result(result)
             )
         return dataset
+    
+    def get_sma_data(self):
+        """
+        Fetches SMA data, transforms it, and returns a dataset.
+        """
+        data = self.fetch_sma_data()
+        results = data.get("results")  # Use "values" directly if SMA data is in this key
+        print(results['values'])
+        results = results['values']
+        # Transform each SMA result
+        dataset = [transform_polygon_sma_result(result) for result in results]
+        return dataset
+
+    def get_ema_data(self):
+        data = self.fetch_ema_data()
+        results = data.get('results') or None
+        results = results['values']
+        if results is None:
+            raise Exception(f"Ticker {self.ticker} has no results")
+        dataset = []
+        for result in results:
+            dataset.append(
+                transform_polygon_ema_result(result)
+            )
+        return dataset
+    def get_macd_data(self):
+        data = self.fetch_macd_data()
+        results = data.get('results')
+        results = results['values']
+        if results is None:
+            raise Exception(f"Ticker {self.ticker} has no results")
+        dataset = []
+        for result in results:
+            dataset.append(
+                transform_polygon_macd_result(result)
+            )
+        return dataset
+    def get_rsi_data(self):
+        data = self.fetch_rsi_data()
+        results = data.get('results') 
+        results = results['values']
+        if results is None:
+            raise Exception(f"Ticker {self.ticker} has no results")
+        dataset = []
+        for result in results:
+            dataset.append(
+                transform_polygon_rsi_result(result)
+            )
+        return dataset
+    def fetch_indicator_data(self, endpoint: str, params: dict):
+        """
+        Generalized method to fetch data for indicators like SMA, EMA, MACD, and RSI.
+        """
+        url = f"https://api.polygon.io{endpoint}?{urlencode(params)}&apiKey={self.get_api_key()}"
+        headers = self.get_headers()
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()  # Ensure 2xx status
+        return response.json()
+    def get_indicator_data(self, endpoint: str, params: dict, transform_function):
+        """
+        Generalized method to get data for SMA, EMA, MACD, or RSI.
+        """
+        data = self.fetch_indicator_data(endpoint, params)
+        results = data.get("values")  # Assuming the indicator results are under "values"
+        if not results:
+            raise Exception(f"Ticker {self.ticker} has no results for endpoint {endpoint}")
+        
+        return [transform_function(result) for result in results]
