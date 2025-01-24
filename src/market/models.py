@@ -44,10 +44,12 @@ class StockQuote(models.Model):
     raw_timestamp = models.CharField(max_length=120, null=True, blank=True, help_text="Non transformed timestamp string or int or float")
     time = TimescaleDateTimeField(interval="1 week")
     
-    sma = models.DecimalField(max_digits=10, decimal_places=4,blank=True, null=True)
-    ema = models.DecimalField(max_digits=10, decimal_places=4,blank=True, null=True)
-    macd = models.DecimalField(max_digits=10, decimal_places=4,blank=True, null=True)
-    rsi = models.DecimalField(max_digits=10, decimal_places=4,blank=True, null=True)
+    sma_value = models.DecimalField(max_digits=10, decimal_places=4,blank=True, null=True)
+    ema_value = models.DecimalField(max_digits=10, decimal_places=4,blank=True, null=True)
+    macd_histogram = models.DecimalField(max_digits=10, decimal_places=4,blank=True, null=True)
+    macd_signal = models.DecimalField(max_digits=10, decimal_places=4,blank=True, null=True)
+    macd_value = models.DecimalField(max_digits=10, decimal_places=4,blank=True, null=True)
+    rsi_value = models.DecimalField(max_digits=10, decimal_places=4,blank=True, null=True)
 
     treasury_10y_yield  = models.DecimalField(max_digits=10, decimal_places=4,blank=True, null=True)
     fed_funds_rate  = models.DecimalField(max_digits=10, decimal_places=4,blank=True, null=True)
