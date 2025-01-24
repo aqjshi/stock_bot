@@ -6,6 +6,7 @@ from typing import Literal
 from urllib.parse import urlencode
 from datetime import datetime
 from decouple import config
+from datetime import datetime, timedelta
 
 POLOGYON_API_KEY = config("POLOGYON_API_KEY", default=None, cast=str)
 
@@ -51,9 +52,8 @@ def transform_polygon_macd_result(result):
     return {
         "histogram": result["histogram"],
         "signal": result["signal"],
-        "timestamp": result["timestamp"],
         "value": result["value"],
-        'raw_timestamp': result.get('t'),
+        'raw_timestamp': result["timestamp"],
         'time': utc_timestamp,
     }
 
@@ -92,6 +92,8 @@ class PolygonAPIClient:
     series_type: Literal["open", "high", "low", "close"] = "close"
     order: Literal["asc", "desc"] = "desc"
     limit = 5000
+
+    date_format = "%Y-%m-%d"
 
     def get_api_key(self):
         return self.api_key or POLOGYON_API_KEY
@@ -269,7 +271,6 @@ class PolygonAPIClient:
         """
         data = self.fetch_sma_data()
         results = data.get("results")  # Use "values" directly if SMA data is in this key
-        print(results['values'])
         results = results['values']
         # Transform each SMA result
         dataset = [transform_polygon_sma_result(result) for result in results]
@@ -311,6 +312,168 @@ class PolygonAPIClient:
                 transform_polygon_rsi_result(result)
             )
         return dataset
+    
+
+        # Helper function to fetch data in date-range batches
+    def fetch_stock_data_in_batches(self, from_date, to_date, step_days=5):
+        """
+        Fetches data in batches based on date ranges.
+
+        :param self: Initialized API client
+        :param from_date: Start date (string in 'YYYY-MM-DD')
+        :param to_date: End date (string in 'YYYY-MM-DD')
+        :param step_days: Number of days per batch
+        :return: Consolidated dataset
+        """
+        consolidated_data = []
+        current_date = datetime.strptime(from_date, self.date_format)
+        end_date = datetime.strptime(to_date, self.date_format)
+
+        while current_date < end_date:
+            batch_start = current_date.strftime(self.date_format)
+            batch_end = (current_date + timedelta(days=step_days - 1)).strftime(self.date_format)
+
+            if datetime.strptime(batch_end, self.date_format) > end_date:
+                batch_end = to_date
+
+            print(f"Fetching data from {batch_start} to {batch_end}...")
+            self.from_date = batch_start
+            self.to_date = batch_end
+
+            batch_data = self.get_stock_data()
+            consolidated_data.extend(batch_data)
+
+            current_date += timedelta(days=step_days)
+
+        return consolidated_data
+
+    def fetch_sma_data_in_batches(self, from_date, to_date, step_days=5):
+        """
+        Fetches data in batches based on date ranges.
+
+        :param self: Initialized API client
+        :param from_date: Start date (string in 'YYYY-MM-DD')
+        :param to_date: End date (string in 'YYYY-MM-DD')
+        :param step_days: Number of days per batch
+        :return: Consolidated dataset
+        """
+        consolidated_data = []
+        current_date = datetime.strptime(from_date, self.date_format)
+        end_date = datetime.strptime(to_date, self.date_format)
+
+        while current_date < end_date:
+            batch_start = current_date.strftime(self.date_format)
+            batch_end = (current_date + timedelta(days=step_days - 1)).strftime(self.date_format)
+
+            if datetime.strptime(batch_end, self.date_format) > end_date:
+                batch_end = to_date
+
+            print(f"Fetching data from {batch_start} to {batch_end}...")
+            self.from_date = batch_start
+            self.to_date = batch_end
+
+            batch_data = self.get_sma_data()
+            consolidated_data.extend(batch_data)
+
+            current_date += timedelta(days=step_days)
+
+        return consolidated_data
+
+    def fetch_ema_data_in_batches(self, from_date, to_date, step_days=5):
+        """
+        Fetches data in batches based on date ranges.
+
+        :param self: Initialized API client
+        :param from_date: Start date (string in 'YYYY-MM-DD')
+        :param to_date: End date (string in 'YYYY-MM-DD')
+        :param step_days: Number of days per batch
+        :return: Consolidated dataset
+        """
+        consolidated_data = []
+        current_date = datetime.strptime(from_date, self.date_format)
+        end_date = datetime.strptime(to_date, self.date_format)
+
+        while current_date < end_date:
+            batch_start = current_date.strftime(self.date_format)
+            batch_end = (current_date + timedelta(days=step_days - 1)).strftime(self.date_format)
+
+            if datetime.strptime(batch_end, self.date_format) > end_date:
+                batch_end = to_date
+
+            print(f"Fetching data from {batch_start} to {batch_end}...")
+            self.from_date = batch_start
+            self.to_date = batch_end
+
+            batch_data = self.get_ema_data()
+            consolidated_data.extend(batch_data)
+
+            current_date += timedelta(days=step_days)
+
+        return consolidated_data
+    def fetch_macd_data_in_batches(self, from_date, to_date, step_days=5):
+        """
+        Fetches data in batches based on date ranges.
+
+        :param self: Initialized API client
+        :param from_date: Start date (string in 'YYYY-MM-DD')
+        :param to_date: End date (string in 'YYYY-MM-DD')
+        :param step_days: Number of days per batch
+        :return: Consolidated dataset
+        """
+        consolidated_data = []
+        current_date = datetime.strptime(from_date, self.date_format)
+        end_date = datetime.strptime(to_date, self.date_format)
+
+        while current_date < end_date:
+            batch_start = current_date.strftime(self.date_format)
+            batch_end = (current_date + timedelta(days=step_days - 1)).strftime(self.date_format)
+
+            if datetime.strptime(batch_end, self.date_format) > end_date:
+                batch_end = to_date
+
+            print(f"Fetching data from {batch_start} to {batch_end}...")
+            self.from_date = batch_start
+            self.to_date = batch_end
+
+            batch_data = self.get_macd_data()
+            consolidated_data.extend(batch_data)
+
+            current_date += timedelta(days=step_days)
+
+        return consolidated_data
+
+    def fetch_rsi_data_in_batches(self, from_date, to_date, step_days=5):
+        """
+        Fetches data in batches based on date ranges.
+
+        :param self: Initialized API client
+        :param from_date: Start date (string in 'YYYY-MM-DD')
+        :param to_date: End date (string in 'YYYY-MM-DD')
+        :param step_days: Number of days per batch
+        :return: Consolidated dataset
+        """
+        consolidated_data = []
+        current_date = datetime.strptime(from_date, self.date_format)
+        end_date = datetime.strptime(to_date, self.date_format)
+
+        while current_date < end_date:
+            batch_start = current_date.strftime(self.date_format)
+            batch_end = (current_date + timedelta(days=step_days - 1)).strftime(self.date_format)
+
+            if datetime.strptime(batch_end, self.date_format) > end_date:
+                batch_end = to_date
+
+            print(f"Fetching data from {batch_start} to {batch_end}...")
+            self.from_date = batch_start
+            self.to_date = batch_end
+
+            batch_data = self.get_rsi_data()
+            consolidated_data.extend(batch_data)
+
+            current_date += timedelta(days=step_days)
+
+        return consolidated_data
+
     def fetch_indicator_data(self, endpoint: str, params: dict):
         """
         Generalized method to fetch data for indicators like SMA, EMA, MACD, and RSI.
