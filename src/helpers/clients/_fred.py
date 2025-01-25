@@ -60,39 +60,6 @@ from decouple import config
 # Fetch FRED API Key from environment (.env) or fallback
 FRED_API_KEY = config("FRED_API_KEY", default=None, cast=str)
 
-def fetch_fred_data(series_id: str, fred_api_key: str, 
-                    realtime_start: str = "2024-07-04", 
-                    realtime_end: str = "2024-08-28") -> dict:
-    """
-    Fetches time series data from the FRED API for a given series ID.
-    
-    :param series_id: The FRED series ID.
-    :param fred_api_key: The API key for authentication.
-    :param realtime_start: The start date for real-time FRED data.
-    :param realtime_end: The end date for real-time FRED data.
-    :return: A dictionary mapping date strings to float values (or NaN).
-    """
-    base_url = "https://api.stlouisfed.org/fred/series/observations"
-    params = {
-        "series_id": series_id,
-        "realtime_start": realtime_start,
-        "realtime_end": realtime_end,
-        "api_key": fred_api_key,
-        "file_type": "json"
-    }
-
-    response = requests.get(base_url, params=params)
-    response.raise_for_status()
-
-    observations = response.json().get("observations", [])
-    data_dict = {}
-
-    for obs in observations:
-        date_str = obs["date"]
-        val_str = obs["value"]
-        data_dict[date_str] = float(val_str) if val_str != "." else math.nan
-
-    return data_dict
 
 def transform_fred_result(result: dict) -> dict:
     """
@@ -168,47 +135,56 @@ class FREDAPIClient:
         # Example transformation; adjust fields as needed for real FRED data.
         return [transform_fred_result(obs) for obs in observations]
 
-# ------------------------------------------------------------------------------
+    # ------------------------------------------------------------------------------
+    def fetch_fred_data(self, series_id: str, fred_api_key: str, 
+                    realtime_start: str = "2024-07-04", 
+                    realtime_end: str = "2024-08-28") -> dict:
+        """
+        Fetches time series data from the FRED API for a given series ID and filters only the observed dates and values.
 
-def get_macro_data(fred_api_key: str = FRED_API_KEY) -> dict:
-    """
-    Fetches key macroeconomic indicators from FRED using their series IDs.
-    
-    :param fred_api_key: The API key for the FRED API.
-    :return: A dictionary of macroeconomic indicators, each as a dict of date-value pairs.
-    """
-    return {
-        "treasury_10y_yield": fetch_fred_data("DGS10", fred_api_key),
-        "fed_funds_rate": fetch_fred_data("FEDFUNDS", fred_api_key),
-        "cpi": fetch_fred_data("CPIAUCSL", fred_api_key),
-        "ppi": fetch_fred_data("PPIACO", fred_api_key),
-        "u3": fetch_fred_data("UNRATE", fred_api_key),
-        "u6": fetch_fred_data("U6RATE", fred_api_key),
-        "gdp": fetch_fred_data("GDP", fred_api_key),
-        "cci": fetch_fred_data("CSCICP03USM665S", fred_api_key),
-        "retail_sales": fetch_fred_data("RSAFS", fred_api_key),
-        "m2": fetch_fred_data("M2SL", fred_api_key),
-    }
+        :param series_id: The FRED series ID.
+        :param fred_api_key: The API key for authentication.
+        :param realtime_start: The start date for real-time FRED data.
+        :param realtime_end: The end date for real-time FRED data.
+        :return: A dictionary mapping observed dates (strings) to float values.
+        """
+        base_url = "https://api.stlouisfed.org/fred/series/observations"
+        params = {
+            "series_id": series_id,
+            "realtime_start": realtime_start,
+            "realtime_end": realtime_end,
+            "api_key": fred_api_key,
+            "file_type": "json"
+        }
 
-# ------------------------------------------------------------------------------
-# EXAMPLE USAGE
-# ------------------------------------------------------------------------------
-if __name__ == "__main__":
-    # Provide your actual FRED API key here or set it in your .env file
-    example_api_key = "YOUR_FRED_API_KEY"
-    
-    # Fetch a single series (e.g., GNPCA) for a given date range
-    # using the FREDAPIClient dataclass
-    client = FREDAPIClient(
-        series_id="GNPCA",
-        realtime_start="2024-07-04",
-        realtime_end="2024-08-28",
-        api_key=example_api_key
-    )
-    gnpca_data = client.get_series_data()
-    print("GNPCA Data (Transformed):", gnpca_data)
+        response = requests.get(base_url, params=params)
+        response.raise_for_status()  # Raise exception for HTTP errors
 
-    # Fetch multiple macroeconomic indicators
-    macro_indicators = get_macro_data(example_api_key)
-    print("Macro Indicators:", macro_indicators)
+        observations = response.json().get("observations", [])  # Extract observations list
+        data_dict = {
+            obs["date"]: float(obs["value"]) if obs["value"] != "." else math.nan
+            for obs in observations  # Filter observed dates and values
+        }
+
+        return data_dict
+
+    def get_macro_data(self) -> dict:
+        """
+        Fetches key macroeconomic indicators from FRED using their series IDs.
+        
+        :param fred_api_key: The API key for the FRED API.
+        :return: A dictionary of macroeconomic indicators, each as a dict of date-value pairs.
+        """
+        return {
+            "treasury_10y_yield": self.fetch_fred_data("DGS10",self.realtime_start, self.realtime_end,  self.fred_api_key),
+            "fed_funds_rate": self.fetch_fred_data("FEDFUNDS",self.realtime_start, self.realtime_end,   self.fred_api_key),
+            "cpi": self.fetch_fred_data("CPIAUCSL", self.realtime_start, self.realtime_end,  self.fred_api_key),
+            "ppi": self.fetch_fred_data("PPIACO", self.realtime_start, self.realtime_end,  self.fred_api_key),
+            "u3": self.fetch_fred_data("UNRATE", self.realtime_start, self.realtime_end, self.fred_api_key),
+            "u6": self.fetch_fred_data("U6RATE",self.realtime_start, self.realtime_end, self.fred_api_key),
+            "gdp": self.fetch_fred_data("GDP",self.realtime_start, self.realtime_end, self.fred_api_key),
+            "cci": self.fetch_fred_data("CSCICP03USM665S",self.realtime_start, self.realtime_end, self.fred_api_key),
+            "retail_sales": self.fetch_fred_data("RSAFS",self.realtime_start, self.realtime_end, self.fred_api_key),
+            "m2": self.fetch_fred_data("M2SL",self.realtime_start, self.realtime_end, self.fred_api_key),
+        }
 
