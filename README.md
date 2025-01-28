@@ -34,6 +34,11 @@ git clone https://github.com/aqjshi/stock_bot.git
 
 ```
 
+Create your env file and populate with keys
+
+```bash
+touch .env 
+```
 Checkout the start branch
 ```bash
 git checkout start
