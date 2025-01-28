@@ -29,7 +29,10 @@ Download the following:
 Open a command line (Terminal, VSCode Terminal, Cursor Terminal, Powershell, etc)
 
 Clone this Repo
+```bash
+git clone https://github.com/aqjshi/stock_bot.git
 
+```
 
 Checkout the start branch
 ```bash
