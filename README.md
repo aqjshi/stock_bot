@@ -1,9 +1,3 @@
-# Stock Trading Bot
-[![Star this repo](https://img.shields.io/github/stars/codingforentrepreneurs/Stock-Trading-Bot?style=social)](https://github.com/codingforentrepreneurs/Stock-Trading-Bot)
-
-Learn how to extract data, analyze, and decide on stocks in the market using Django, Celery, TimescaleDB, Jupyter, OpenAI, and more.
-
-Thanks to [Timescale](https://kirr.co/eedxyv) for partnering with me on this tutorial.
 
 
 __Tech Stack__
@@ -35,11 +29,7 @@ Download the following:
 Open a command line (Terminal, VSCode Terminal, Cursor Terminal, Powershell, etc)
 
 Clone this Repo
-```bash
-mkdir -p ~/dev/stock-trading-bot
-cd ~/dev/stock-trading-bot
-git clone https://github.com/codingforentrepreneurs/Stock-Trading-Bot .
-```
+
 
 Checkout the start branch
 ```bash
@@ -72,6 +62,14 @@ Docker Compose Up (for local TimescaleDB and Redis)
 ```bash
 docker compose -f compose.yaml up -d
 ```
+
+DJANGO INIT
+```bash
+python src/manage.py createsuperuser
+python src/manage.py makemigrations
+python src/manage.py migrate
+```
+
 > If you don't have Docker, use [TimescaleDB Cloud](tsdb.co/justin) and [Upstash Redis](https://upstash.com/?utm_source=cfe)
 
 Create `.env` in project root
