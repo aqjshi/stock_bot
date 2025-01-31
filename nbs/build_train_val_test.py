@@ -1,20 +1,20 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[6]:
+# In[1]:
 
 
 import setup
 setup.init_django()
 
 
-# In[7]:
+# In[2]:
 
 
 from market.models import StockQuote
 
 
-# In[8]:
+# In[3]:
 
 
 from django.db.models import Avg, F, RowRange, Window
@@ -23,7 +23,7 @@ from datetime import timedelta
 from decimal import Decimal
 
 
-# In[9]:
+# In[4]:
 
 
 days_ago = 30
@@ -36,7 +36,7 @@ qs.count()
 
 
 
-# In[12]:
+# In[5]:
 
 
 from django.utils.timezone import make_aware
@@ -71,4 +71,39 @@ end_of_trading_day_closing_value = StockQuote.objects.filter(company__ticker="AA
 print(end_of_trading_day_closing_value.close_price if end_of_trading_day_closing_value else "No data available")
 print("Time for the object: ", end_of_trading_day_closing_value.time if end_of_trading_day_closing_value else "No data available")
 
+
+
+# In[7]:
+
+
+qs = None
+days_ago = 30
+now = timezone.now()
+start_date = now - timedelta(days=30)
+end_date = now
+
+qs = StockQuote.objects.filter(company__ticker="AAPL")
+qs.count()
+
+#for each object in the query set, construct the end_of_trading_day_closing_value, 
+# return an example object, and print out its ticker, UTC TIME, LOCALIZED TIME, close_price  and end_of_trading_day_closing_value
+for obj in qs:
+    localized_time = obj.time.astimezone(eastern)
+    if localized_time.hour >= 16:
+        target_est = (localized_time + timedelta(days=1)).replace(hour=16, minute=0, second=0, microsecond=0)
+    else:
+        target_est = localized_time.replace(hour=16, minute=0, second=0, microsecond=0)
+    
+    target_utc = target_est.astimezone(datetime.timezone.utc)
+    end_of_trading_day_closing_value = StockQuote.objects.filter(company__ticker="AAPL", time=target_utc).first()
+    
+    # print(f"Ticker: {obj.company.ticker}")
+    # print(f"UTC Time: {obj.time}")
+    # print(f"Localized Time: {localized_time}")
+    # print(f"Close Price: {obj.close_price}")
+    # print(f"End of Trading Day Closing Value: {end_of_trading_day_closing_value.close_price if end_of_trading_day_closing_value else 'No data available'}")
+    # print("----")
+
+valid_closing_prices_count = sum(1 for obj in qs if StockQuote.objects.filter(company__ticker="AAPL", time=(obj.time.astimezone(eastern) + timedelta(days=1)).replace(hour=16, minute=0, second=0, microsecond=0).astimezone(datetime.timezone.utc)).exists())
+print(f"Number of items with a valid end of closing date price: {valid_closing_prices_count}")
 
