@@ -1,148 +1,80 @@
-A Django-based stock trading bot using TimescaleDB, Polygon, Alpha Vantage, and more.
 
-Tech Stack
-Python 3.12
-GitHub
-Django
-GitHub
-bash
-Copy
-pip install "Django>=5.1,<5.2"
-TimescaleDB Cloud
-Learn more (or use the Docker version)
-Django Timescaledb
-GitHub
-bash
-Copy
-pip install django-timescaledb
-Python Requests
-GitHub
-bash
-Copy
-pip install requests
-Jupyter
-Official Site
-bash
-Copy
-pip install jupyter
-Psycopg (Binary Release)
-PyPI
-bash
-Copy
-pip install "psycopg[binary]"
-Python Decouple
-GitHub
-Loads environment variables (e.g., from a .env file) with type casting and defaults.
-Polygon.io
-Website | Docs
-Alpha Vantage
-Website | Docs
-OpenAI
-Website
-Tutorials
-In-depth Setup
-Watch on YouTube
-Django Setup for Jupyter Notebooks (Short + Code)
-View Tutorial
-Full Tutorial
-Watch on YouTube
-Getting Started
-Prerequisites
-Download and install the following:
 
-Git
-VSCode (or Cursor)
-Docker Desktop or Docker Engine (Linux install script)
-Python
-Clone the Repository
-bash
-Copy
+__Tech Stack__
+- [Python 3.12](https://github.com/python)
+- [Django](https://github.com/django/django) (`pip install "Django>=5.1,<5.2"`)
+- [TimescaleDB Cloud](https://tsdb.co/justin) (or Docker version)
+- [Django Timescaledb](https://github.com/jamessewell/django-timescaledb) (`pip install django-timescaledb`)
+- [Python requests](https://github.com/psf/requests) (`pip install requests`)
+- [Jupyter](https://jupyter.org/) (`pip install jupyter`)
+- [Psycopg Binary Release](https://pypi.org/project/psycopg/) (`pip install "psycopg[binary]"`)
+- [Python Decouple](https://github.com/HBNetwork/python-decouple) to load environment variables (e.g. `.env`) with type casting and default values.
+- [Polygon.io](https://polygon.io/?utm_source=cfe&utm_medium=github&utm_campaign=cfe-github) ([docs](https://polygon.io/docs/stocks/getting-started?utm_source=cfe&utm_medium=github&utm_campaign=cfe-github))
+- [Alpha Vantage]( https://www.alphavantage.co/?utm_source=cfe&utm_medium=github&utm_campaign=cfe-github) ([docs](https://www.alphavantage.co/documentation/?utm_source=cfe&utm_medium=github&utm_campaign=cfe-github))
+- [OpenAI]( https://www.openai.com/?utm_source=cfe&utm_medium=github&utm_campaign=cfe-github)
+
+## Tutorial
+- In-depth setup [on YouTube (https://youtu.be/aApDye1TWJ4)](https://youtu.be/aApDye1TWJ4)
+- [Django Setup for use in Jupyter Notebooks (short + code)](https://www.codingforentrepreneurs.com/shorts/django-setup-for-use-in-jupyter-notebooks)
+- Full tutorial [on YouTube (https://youtu.be/O3O1z5hTdUM)](https://youtu.be/O3O1z5hTdUM)
+
+## Getting Started
+
+Download the following:
+- [git](https://git-scm.com/)
+- [VSCode](https://code.visualstudio.com/) (or [Cursor](https://cursor.com/))
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) or Docker Engine via [get.docker.com](https://get.docker.com/) (Linux Install Script)
+- [Python](https://www.python.org/downloads/)
+
+Open a command line (Terminal, VSCode Terminal, Cursor Terminal, Powershell, etc)
+
+Clone this Repo
+```bash
 git clone https://github.com/aqjshi/stock_bot.git
-Environment Setup
-Create an Environment File
 
-bash
-Copy
-touch .env
-Populate .env with your keys (e.g., ALPHA_VANTAGE_API_KEY="CSZDVN7BYPHHRPF4").
+```
 
-Initialize Git
+Create your env file and populate with keys
 
-bash
-Copy
+```bash
+touch .env 
+```
+Checkout the start branch
+```bash
 git checkout start
 rm -rf .git
 git init
 git add --all
 git commit -m "It's my bot now"
-Create a Python Virtual Environment
+```
 
-macOS/Linux/WSL:
-bash
-Copy
+Create a Python vitual environment
+_macOS/Linux/WSL_
+```bash
 python3.12 -m venv venv
 source venv/bin/activate
-Windows (PowerShell):
-powershell
-Copy
+```
+
+_windows powershell_
+```powershell
 c:\Path\To\Python312\python.exe -m venv venv
 .\venv\Scripts\activate
-Install Requirements
+```
 
-bash
-Copy
+Install requirements
+```bash
 (venv) python -m pip install -r requirements.txt
-Start Docker Containers
+```
 
-For local TimescaleDB and Redis:
-
-bash
-Copy
+Docker Compose Up (for local TimescaleDB and Redis)
+```bash
 docker compose -f compose.yaml up -d
-Django Setup
-Create a Superuser
+```
 
-bash
-Copy
+DJANGO INIT
+```bash
 python src/manage.py createsuperuser
-Apply Migrations
-
-bash
-Copy
 python src/manage.py makemigrations
 python src/manage.py migrate
-Run the Development Server
-
-bash
-Copy
 python src/manage.py runserver
-Open the provided URL in your browser and log in.
-
-Data Generation & Bulk Loading
-Polygon API:
-Complete dataset generation, local data structure, and SQLite query have been implemented.
-Data Storage:
-Data is stored locally in src/db.sqlite3. The bulk load notebook (bulk_load.ipynb) generates between 20–80 MB of data, depending on your operating system.
-Testing Environment:
-Use the alpha_vantage_bulk_load.ipynb notebook to test and verify API integrations and batch processing.
-Tip: Restart the Jupyter kernel after modifying functions to clear cached variables.
-Next Steps
-Alpha Vantage Integration:
-
-Migrate Polygon subfunctions to Alpha Vantage.
-Update the alpha_vantage.py file.
-Verify working URLs and technical indicators.
-Run makemigrations and migrate to update the data structure.
-Project Tasks:
-
-Hailey: Focus on Alpha Vantage API integration.
-Anthony:
-Part 1: Train/Validation/Test set creation, model implementation, and evaluation.
-Part 2: Optimize window size and evaluate Sharpe ratio.
-Additional Tools
-Converting Markdown/Text to a Jupyter Notebook
-To convert a Python script (or Markdown text) into a Jupyter Notebook using Jupytext:
-
-bash
-Copy
-jupytext --to notebook nbs/build_dataset.py
+```
