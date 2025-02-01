@@ -1,20 +1,20 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
+# In[7]:
 
 
 import setup
 setup.init_django()
 
 
-# In[2]:
+# In[8]:
 
 
 from market.models import StockQuote
 
 
-# In[3]:
+# In[9]:
 
 
 from django.db.models import Avg, F, RowRange, Window
@@ -23,7 +23,7 @@ from datetime import timedelta
 from decimal import Decimal
 
 
-# In[4]:
+# In[10]:
 
 
 days_ago = 30
@@ -36,7 +36,7 @@ qs.count()
 
 
 
-# In[5]:
+# In[11]:
 
 
 from django.utils.timezone import make_aware
@@ -75,7 +75,7 @@ print("Time for the object: ", value_after_k_minutes.time if value_after_k_minut
 
 
 
-# In[ ]:
+# In[12]:
 
 
 # Initialize the queryset
@@ -111,4 +111,35 @@ print(f"Number of items with a valid close_price_after_k_window_value: {valid_cl
 # Print the first 10 items in the dataset
 for item in close_price_after_k_window_dataset[:1000]:
     print(item)
+
+
+# In[ ]:
+
+
+# Let A be Predicted Price Change: Literal["1", "-1"] for 1 being greater than current price
+# Let B be Given time series past data
+# we want to solve for P (A | B) 
+import setup
+setup.init_django()
+import helpers.clients as helper_clients
+from datetime import datetime, timedelta
+
+# class TimeSeriesBlock(int: lookback_depth, int: k_projection)
+from django.db import models
+from dataclasses import dataclass
+from market.models import Company, StockQuote
+
+
+@dataclass
+class TimeSeriesBlock:
+    ticker: str = "AAPL"
+    timestamp = models.DateTimeField(auto_now_add=True)
+    step_size: str = "minute"
+    # number of the most recent time series objects we store given that the objects are sorted ascending, and less than current time
+    l_lookback_depth: int = 15 
+
+    # number of the most recent time series objects we store given that the objects are sorted ascending, and greater than current time
+    k_projection_depth: int = 15
+    k_projection_steps: int = 15
+
 
